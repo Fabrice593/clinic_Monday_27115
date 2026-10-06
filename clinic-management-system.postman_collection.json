@@ -1,0 +1,133 @@
+{
+  "info": {
+    "name": "Clinic Management System - Queries (set 2)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:1015" },
+    { "key": "doctorId", "value": "492a39de-7630-47c2-bdff-b0b4642c7de6" }
+  ],
+  "item": [
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "List doctors (doctorId is already set to Marie Uwimana)",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/doctor/all" }
+        },
+        {
+          "name": "Create patient - Alice Murekatete",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"Alice\",\n  \"lastName\": \"Murekatete\"\n}" },
+            "url": "{{baseUrl}}/api/patient/save"
+          }
+        },
+        {
+          "name": "Create appointment - Emmanuel Niyonzima, 2026-11-05",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"patient\": { \"id\": \"fbb88d8a-14bb-4a6a-bcb8-17cdb28cb123\" },\n  \"doctor\": { \"id\": \"{{doctorId}}\" },\n  \"date\": \"2026-11-05T10:30:00\",\n  \"reason\": \"Blood pressure follow-up\"\n}" },
+            "url": "{{baseUrl}}/api/appointment/save"
+          }
+        },
+        {
+          "name": "Create appointment - Josiane Mutoni, 2026-11-12",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"patient\": { \"id\": \"c68ed321-dfcd-4a9e-9e17-687846de428b\" },\n  \"doctor\": { \"id\": \"{{doctorId}}\" },\n  \"date\": \"2026-11-12T14:00:00\",\n  \"reason\": \"Dental check\"\n}" },
+            "url": "{{baseUrl}}/api/appointment/save"
+          }
+        },
+        {
+          "name": "Create appointment - Thierry Bizimana, 2026-12-03",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"patient\": { \"id\": \"4743eb0e-5f6f-4106-903d-008a22832a6c\" },\n  \"doctor\": { \"id\": \"{{doctorId}}\" },\n  \"date\": \"2026-12-03T09:15:00\",\n  \"reason\": \"Eye test\"\n}" },
+            "url": "{{baseUrl}}/api/appointment/save"
+          }
+        },
+        {
+          "name": "Set status CONFIRMED (replace APPOINTMENT-ID, keep patient/doctor/date)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"patient\": { \"id\": \"fbb88d8a-14bb-4a6a-bcb8-17cdb28cb123\" },\n  \"doctor\": { \"id\": \"{{doctorId}}\" },\n  \"date\": \"2026-11-05T10:30:00\",\n  \"reason\": \"Blood pressure follow-up\",\n  \"status\": \"CONFIRMED\"\n}" },
+            "url": "{{baseUrl}}/api/appointment/update/APPOINTMENT-ID"
+          }
+        }
+      ]
+    },
+    {
+      "name": "A1 Patients by last name",
+      "item": [
+        {
+          "name": "mutoni (lowercase)",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/patients/by-last-name?lastName=mutoni", "host": ["{{baseUrl}}"], "path": ["api","patients","by-last-name"], "query": [{ "key": "lastName", "value": "mutoni" }] } }
+        },
+        {
+          "name": "NIYONZIMA (uppercase)",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/patients/by-last-name?lastName=NIYONZIMA", "host": ["{{baseUrl}}"], "path": ["api","patients","by-last-name"], "query": [{ "key": "lastName", "value": "NIYONZIMA" }] } }
+        },
+        {
+          "name": "BiZiMaNa (mixed case)",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/patients/by-last-name?lastName=BiZiMaNa", "host": ["{{baseUrl}}"], "path": ["api","patients","by-last-name"], "query": [{ "key": "lastName", "value": "BiZiMaNa" }] } }
+        },
+        {
+          "name": "Habimana (no match -> [])",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/patients/by-last-name?lastName=Habimana", "host": ["{{baseUrl}}"], "path": ["api","patients","by-last-name"], "query": [{ "key": "lastName", "value": "Habimana" }] } }
+        }
+      ]
+    },
+    {
+      "name": "A2 Appointments by status",
+      "item": [
+        {
+          "name": "SCHEDULED",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/appointments/by-status?status=SCHEDULED", "host": ["{{baseUrl}}"], "path": ["api","appointments","by-status"], "query": [{ "key": "status", "value": "SCHEDULED" }] } }
+        },
+        {
+          "name": "CONFIRMED",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/appointments/by-status?status=CONFIRMED", "host": ["{{baseUrl}}"], "path": ["api","appointments","by-status"], "query": [{ "key": "status", "value": "CONFIRMED" }] } }
+        },
+        {
+          "name": "cancelled (lowercase)",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/appointments/by-status?status=cancelled", "host": ["{{baseUrl}}"], "path": ["api","appointments","by-status"], "query": [{ "key": "status", "value": "cancelled" }] } }
+        },
+        {
+          "name": "PENDING (invalid -> 400)",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/appointments/by-status?status=PENDING", "host": ["{{baseUrl}}"], "path": ["api","appointments","by-status"], "query": [{ "key": "status", "value": "PENDING" }] } }
+        }
+      ]
+    },
+    {
+      "name": "A3 Appointments between dates",
+      "item": [
+        {
+          "name": "November 2026",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/appointments/between?start=2026-11-01&end=2026-11-30", "host": ["{{baseUrl}}"], "path": ["api","appointments","between"], "query": [{ "key": "start", "value": "2026-11-01" }, { "key": "end", "value": "2026-11-30" }] } }
+        },
+        {
+          "name": "Single day 2026-11-12",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/appointments/between?start=2026-11-12&end=2026-11-12", "host": ["{{baseUrl}}"], "path": ["api","appointments","between"], "query": [{ "key": "start", "value": "2026-11-12" }, { "key": "end", "value": "2026-11-12" }] } }
+        },
+        {
+          "name": "Nov 5 to Dec 3 (inclusive edges)",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/appointments/between?start=2026-11-05&end=2026-12-03", "host": ["{{baseUrl}}"], "path": ["api","appointments","between"], "query": [{ "key": "start", "value": "2026-11-05" }, { "key": "end", "value": "2026-12-03" }] } }
+        },
+        {
+          "name": "End before start (-> 400)",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/appointments/between?start=2026-12-01&end=2026-11-01", "host": ["{{baseUrl}}"], "path": ["api","appointments","between"], "query": [{ "key": "start", "value": "2026-12-01" }, { "key": "end", "value": "2026-11-01" }] } }
+        },
+        {
+          "name": "Bad date format (-> 400)",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/appointments/between?start=05-11-2026&end=2026-11-30", "host": ["{{baseUrl}}"], "path": ["api","appointments","between"], "query": [{ "key": "start", "value": "05-11-2026" }, { "key": "end", "value": "2026-11-30" }] } }
+        }
+      ]
+    }
+  ]
+}
