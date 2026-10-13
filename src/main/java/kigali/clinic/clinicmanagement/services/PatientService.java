@@ -4,144 +4,84 @@ import kigali.clinic.clinicmanagement.models.Patient;
 import kigali.clinic.clinicmanagement.repositories.AppointmentRepository;
 import kigali.clinic.clinicmanagement.repositories.DoctorRepository;
 import kigali.clinic.clinicmanagement.repositories.PatientRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-import static kigali.clinic.clinicmanagement.utils.Validations.containsDigit;
-import static kigali.clinic.clinicmanagement.utils.Validations.isBlank;
-import static kigali.clinic.clinicmanagement.utils.Validations.normalize;
+import static kigali.clinic.clinicmanagement.utils.ApiResponses.conflict;
+import static kigali.clinic.clinicmanagement.utils.ApiResponses.notFound;
 
 @Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PatientService {
 
-    @Autowired
-    private PatientRepository patientRepo;
+    private static final String PATIENT_NOT_FOUND = "Patient not found";
 
-    @Autowired
-    private AppointmentRepository appointmentRepo;
-
-    @Autowired
-    private DoctorRepository doctorRepo;
+    private final PatientRepository patientRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final DoctorRepository doctorRepository;
 
     @Transactional
-    public String savePatient(Patient patient) {
-
-        String error = validatePatient(patient, null);
-
-        if (error != null) {
-            return error;
-        }
-
-        // two patients can carry the same name; only the ss number must be unique
-        patient.setId(null);
-        patient.setFirstName(normalize(patient.getFirstName()));
-        patient.setLastName(normalize(patient.getLastName()));
-        patient.setSsNumber(normalize(patient.getSsNumber()));
-        patientRepo.save(patient);
-
-        return "Patient is saved Successfully";
+    public void register(Patient.Details details) {
+        details.requireValid();
+        requireUnusedSsNumber(details.ssNumber(), null);
+        patientRepository.save(Patient.register(details));
     }
 
     @Transactional
-    public String updatePatient(UUID id, Patient patient) {
+    public void revise(UUID patientId, Patient.Details details) {
+        Patient patient = patientById(patientId);
+        details.requireValid();
+        requireUnusedSsNumber(details.ssNumber(), patientId);
+        patient.revise(details);
+    }
 
-        Patient existing = patientRepo.findById(id).orElse(null);
+    public List<Patient> allPatients() {
+        return patientRepository.findAll();
+    }
 
-        if (existing == null) {
-            return "Patient not found";
+    public List<Patient> withLastName(String lastName) {
+        return patientRepository.findByLastNameIgnoreCaseOrderByFirstNameAsc(lastName.trim());
+    }
+
+    public List<Patient> frequentPatients(long minimumVisits) {
+        return patientRepository.findFrequentPatients(minimumVisits);
+    }
+
+    public List<Patient> patientsOfDoctor(UUID doctorId) {
+        if (!doctorRepository.existsById(doctorId)) {
+            throw notFound(DoctorService.DOCTOR_NOT_FOUND);
         }
 
-        String error = validatePatient(patient, id);
-
-        if (error != null) {
-            return error;
-        }
-
-        existing.setFirstName(normalize(patient.getFirstName()));
-        existing.setLastName(normalize(patient.getLastName()));
-        existing.setSsNumber(normalize(patient.getSsNumber()));
-        patientRepo.save(existing);
-
-        return "Patient is updated Successfully";
+        return patientRepository.findPatientsOfDoctor(doctorId);
     }
 
-    public List<Patient> getAllPatients() {
-        return patientRepo.findAll();
-    }
-
-    public List<Patient> getPatientsByLastName(String lastName) {
-        return patientRepo.findByLastNameIgnoreCaseOrderByFirstNameAsc(lastName.trim());
-    }
-
-    public List<Patient> getFrequentPatients(long min) {
-        return patientRepo.findFrequentPatients(min);
-    }
-
-    // empty means the doctor does not exist; an empty list means the doctor has no patients yet
-    public Optional<List<Patient>> getPatientsOfDoctor(UUID doctorId) {
-
-        if (!doctorRepo.existsById(doctorId)) {
-            return Optional.empty();
-        }
-
-        return Optional.of(patientRepo.findPatientsOfDoctor(doctorId));
-    }
-
-    public Optional<Patient> getPatientById(UUID id) {
-        return patientRepo.findById(id);
+    public Patient patientById(UUID patientId) {
+        return patientRepository.findById(patientId).orElseThrow(() -> notFound(PATIENT_NOT_FOUND));
     }
 
     @Transactional
-    public String deletePatient(UUID id) {
+    public void delete(UUID patientId) {
+        Patient patient = patientById(patientId);
 
-        Patient existing = patientRepo.findById(id).orElse(null);
-
-        if (existing == null) {
-            return "Patient not found";
+        if (appointmentRepository.existsByPatientId(patientId)) {
+            throw conflict("Patient already has appointments and can not be deleted");
         }
 
-        if (appointmentRepo.existsByPatientId(id)) {
-            return "Patient already has appointments and can not be deleted";
-        }
-
-        patientRepo.delete(existing);
-
-        return "Patient is deleted Successfully";
+        patientRepository.delete(patient);
     }
 
-    // currentId is null on save and the patient's own id on update
-    private String validatePatient(Patient patient, UUID currentId) {
+    private void requireUnusedSsNumber(String ssNumber, UUID patientId) {
+        boolean ssNumberTaken = patientId == null
+                ? patientRepository.existsBySsNumber(ssNumber)
+                : patientRepository.existsBySsNumberAndIdNot(ssNumber, patientId);
 
-        if (isBlank(patient.getFirstName())) {
-            return "Patient first name is required";
+        if (ssNumberTaken) {
+            throw conflict("A patient with that ss number already exists");
         }
-
-        if (isBlank(patient.getLastName())) {
-            return "Patient last name is required";
-        }
-
-        if (containsDigit(patient.getFirstName()) || containsDigit(patient.getLastName())) {
-            return "Patient names must not contain numbers";
-        }
-
-        if (isBlank(patient.getSsNumber())) {
-            return "Patient ss number is required";
-        }
-
-        String ssNumber = normalize(patient.getSsNumber());
-        boolean taken = currentId == null
-                ? patientRepo.existsBySsNumber(ssNumber)
-                : patientRepo.existsBySsNumberAndIdNot(ssNumber, currentId);
-
-        if (taken) {
-            return "A patient with that ss number already exists";
-        }
-
-        return null;
     }
 }

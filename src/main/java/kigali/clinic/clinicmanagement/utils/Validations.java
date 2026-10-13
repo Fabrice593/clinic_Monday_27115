@@ -30,13 +30,9 @@ public final class Validations {
         return value != null && HAS_DIGIT.matcher(value).matches();
     }
 
-    // office numbers can be text like "A-12", so only plain numbers are range checked
     public static boolean isNotPositiveNumber(String value) {
-
-        if (value == null || !INTEGER_TEXT.matcher(value).matches()) {
-            return false;
-        }
-
-        return new BigInteger(value).signum() <= 0;
+        return value != null
+                && INTEGER_TEXT.matcher(value).matches()
+                && new BigInteger(value).signum() <= 0;
     }
 }

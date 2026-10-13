@@ -1,21 +1,21 @@
 package kigali.clinic.clinicmanagement.controllers;
 
 import kigali.clinic.clinicmanagement.services.DashboardService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import kigali.clinic.clinicmanagement.services.DashboardService.Summary;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/dashboard")
+@RequiredArgsConstructor
 public class DashboardController {
 
-    @Autowired
-    private DashboardService dashboardService;
+    private final DashboardService dashboardService;
 
     @GetMapping("/summary")
-    public ResponseEntity<?> getSummary() {
-        return ResponseEntity.ok(dashboardService.getSummary());
+    public Summary summary() {
+        return dashboardService.summary();
     }
 }

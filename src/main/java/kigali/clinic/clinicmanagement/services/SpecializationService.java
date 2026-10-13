@@ -2,95 +2,71 @@ package kigali.clinic.clinicmanagement.services;
 
 import kigali.clinic.clinicmanagement.models.Specialization;
 import kigali.clinic.clinicmanagement.repositories.SpecializationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-import static kigali.clinic.clinicmanagement.utils.Validations.isBlank;
-import static kigali.clinic.clinicmanagement.utils.Validations.normalize;
+import static kigali.clinic.clinicmanagement.utils.ApiResponses.conflict;
+import static kigali.clinic.clinicmanagement.utils.ApiResponses.notFound;
 
 @Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class SpecializationService {
 
-    @Autowired
-    private SpecializationRepository specializationRepo;
+    private static final String SPECIALIZATION_NOT_FOUND = "Specialization not found";
+
+    private final SpecializationRepository specializationRepository;
 
     @Transactional
-    public String saveSpecialization(Specialization specialization) {
-
-        if (isBlank(specialization.getName())) {
-            return "Specialization name is required";
-        }
-
-        String name = normalize(specialization.getName());
-
-        if (specializationRepo.existsByNameIgnoreCase(name)) {
-            return "Specialization " + name + " already exists";
-        }
-
-        specialization.setId(null);
-        specialization.setName(name);
-        specializationRepo.save(specialization);
-
-        return "Specialization is saved Successfully";
+    public void define(Specialization.Details details) {
+        details.requireValid();
+        requireUnusedName(details.name(), null);
+        specializationRepository.save(Specialization.define(details));
     }
 
     @Transactional
-    public String updateSpecialization(UUID id, Specialization specialization) {
-
-        Specialization existing = specializationRepo.findById(id).orElse(null);
-
-        if (existing == null) {
-            return "Specialization not found";
-        }
-
-        if (isBlank(specialization.getName())) {
-            return "Specialization name is required";
-        }
-
-        String name = normalize(specialization.getName());
-
-        if (specializationRepo.existsByNameIgnoreCaseAndIdNot(name, id)) {
-            return "Specialization " + name + " already exists";
-        }
-
-        existing.setName(name);
-        specializationRepo.save(existing);
-
-        return "Specialization is updated Successfully";
+    public void revise(UUID specializationId, Specialization.Details details) {
+        Specialization specialization = specializationById(specializationId);
+        details.requireValid();
+        requireUnusedName(details.name(), specializationId);
+        specialization.revise(details);
     }
 
-    public List<Specialization> getAllSpecializations() {
-        return specializationRepo.findAll();
+    public List<Specialization> allSpecializations() {
+        return specializationRepository.findAll();
     }
 
-    public List<Specialization> getUnusedSpecializations() {
-        return specializationRepo.findUnusedSpecializations();
+    public List<Specialization> unusedSpecializations() {
+        return specializationRepository.findUnusedSpecializations();
     }
 
-    public Optional<Specialization> getSpecializationById(UUID id) {
-        return specializationRepo.findById(id);
+    public Specialization specializationById(UUID specializationId) {
+        return specializationRepository.findById(specializationId)
+                .orElseThrow(() -> notFound(SPECIALIZATION_NOT_FOUND));
     }
 
     @Transactional
-    public String deleteSpecialization(UUID id) {
+    public void delete(UUID specializationId) {
+        Specialization specialization = specializationById(specializationId);
 
-        Specialization existing = specializationRepo.findById(id).orElse(null);
-
-        if (existing == null) {
-            return "Specialization not found";
+        if (specialization.hasDoctors()) {
+            throw conflict("Specialization is already given to doctors and can not be deleted");
         }
 
-        if (!existing.getDoctors().isEmpty()) {
-            return "Specialization is already given to doctors and can not be deleted";
+        specializationRepository.delete(specialization);
+    }
+
+    private void requireUnusedName(String name, UUID specializationId) {
+        boolean nameTaken = specializationId == null
+                ? specializationRepository.existsByNameIgnoreCase(name)
+                : specializationRepository.existsByNameIgnoreCaseAndIdNot(name, specializationId);
+
+        if (nameTaken) {
+            throw conflict("Specialization " + name + " already exists");
         }
-
-        specializationRepo.delete(existing);
-
-        return "Specialization is deleted Successfully";
     }
 }
