@@ -15,8 +15,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-import static kigali.clinic.clinicmanagement.utils.ApiResponses.notFound;
-
 @RestController
 @RequestMapping({"/api/doctor", "/api/doctors"})
 @RequiredArgsConstructor
@@ -68,8 +66,7 @@ public class DoctorController {
     @GetMapping("/{doctorId}/agenda")
     public List<Appointment> agenda(@PathVariable("doctorId") UUID doctorId,
                                     @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate day) {
-        return appointmentService.getDoctorAgenda(doctorId, day)
-                .orElseThrow(() -> notFound(DoctorService.DOCTOR_NOT_FOUND));
+        return appointmentService.agendaOf(doctorId, day);
     }
 
     @PutMapping("/{doctorId}/specializations/{specializationId}")

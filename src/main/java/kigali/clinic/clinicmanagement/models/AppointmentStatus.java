@@ -11,18 +11,29 @@ public enum AppointmentStatus {
     COMPLETED,
     CANCELLED;
 
-    // any letter case is accepted, so "cancelled" works in a URL and in a request body
     @JsonCreator
     public static AppointmentStatus from(String value) {
+        String wanted = value.trim();
 
-        for (AppointmentStatus status : values()) {
-            if (status.name().equalsIgnoreCase(value.trim())) {
-                return status;
-            }
-        }
+        return Arrays.stream(values())
+                .filter(status -> status.name().equalsIgnoreCase(wanted))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Status must be one of " + allowedNames()));
+    }
 
-        String allowed = Arrays.stream(values()).map(Enum::name).collect(Collectors.joining(", "));
+    public boolean canMoveTo(AppointmentStatus target) {
+        return switch (this) {
+            case SCHEDULED -> target == CONFIRMED || target == CANCELLED;
+            case CONFIRMED -> target == COMPLETED || target == CANCELLED;
+            case COMPLETED, CANCELLED -> false;
+        };
+    }
 
-        throw new IllegalArgumentException("Status must be one of " + allowed);
+    public boolean isFinal() {
+        return this == COMPLETED || this == CANCELLED;
+    }
+
+    private static String allowedNames() {
+        return Arrays.stream(values()).map(Enum::name).collect(Collectors.joining(", "));
     }
 }

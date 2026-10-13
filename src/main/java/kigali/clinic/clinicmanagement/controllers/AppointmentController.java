@@ -2,122 +2,120 @@ package kigali.clinic.clinicmanagement.controllers;
 
 import kigali.clinic.clinicmanagement.models.Appointment;
 import kigali.clinic.clinicmanagement.models.AppointmentStatus;
+import kigali.clinic.clinicmanagement.repositories.AppointmentRepository.StatusCount;
 import kigali.clinic.clinicmanagement.services.AppointmentService;
-import kigali.clinic.clinicmanagement.utils.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
+import kigali.clinic.clinicmanagement.utils.ApiResponses.Message;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.Map;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+
+import static kigali.clinic.clinicmanagement.utils.Validations.ensure;
 
 @RestController
 @RequestMapping({"/api/appointment", "/api/appointments"})
+@RequiredArgsConstructor
 public class AppointmentController {
 
-    @Autowired
-    private AppointmentService appointmentService;
+    private final AppointmentService appointmentService;
 
     @PostMapping("/save")
-    public ResponseEntity<?> saveAppointment(@RequestBody Appointment appointment) {
-        return ApiResponses.fromMessage(appointmentService.saveAppointment(appointment), HttpStatus.CREATED);
+    @ResponseStatus(HttpStatus.CREATED)
+    public Message book(@RequestBody Appointment.Details details) {
+        appointmentService.book(details);
+        return new Message("Appointment is saved Successfully");
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateAppointment(@PathVariable UUID id, @RequestBody Appointment appointment) {
-        return ApiResponses.fromMessage(appointmentService.updateAppointment(id, appointment), HttpStatus.OK);
+    public Message revise(@PathVariable("id") UUID appointmentId, @RequestBody Appointment.Details details) {
+        appointmentService.revise(appointmentId, details);
+        return new Message("Appointment is updated Successfully");
     }
 
     @GetMapping("/all")
-    public ResponseEntity<?> getAllAppointments() {
-        return ResponseEntity.ok(appointmentService.getAllAppointments());
+    public List<Appointment> allAppointments() {
+        return appointmentService.allAppointments();
     }
 
     @GetMapping("/by-status")
-    public ResponseEntity<?> getAppointmentsByStatus(@RequestParam AppointmentStatus status) {
-        return ResponseEntity.ok(appointmentService.getAppointmentsByStatus(status));
+    public List<Appointment> withStatus(@RequestParam("status") AppointmentStatus status) {
+        return appointmentService.withStatus(status);
     }
 
-    // a badly written date throws DateTimeParseException, which ApiExceptionHandler turns into 400
     @GetMapping("/between")
-    public ResponseEntity<?> getAppointmentsBetween(@RequestParam String start, @RequestParam String end) {
-
-        LocalDate startDate = LocalDate.parse(start.trim());
-        LocalDate endDate = LocalDate.parse(end.trim());
-
-        if (endDate.isBefore(startDate)) {
-            return ResponseEntity.badRequest().body(Map.of("message", "End date must not be before start date"));
-        }
-
-        return ResponseEntity.ok(appointmentService.getAppointmentsBetween(startDate, endDate));
+    public List<Appointment> between(@RequestParam("start") String start, @RequestParam("end") String end) {
+        return appointmentService.between(LocalDate.parse(start.trim()), LocalDate.parse(end.trim()));
     }
 
     @GetMapping("/stats/by-status")
-    public ResponseEntity<?> getAppointmentCountsByStatus() {
-        return ResponseEntity.ok(appointmentService.getAppointmentCountsByStatus());
+    public List<StatusCount> countsPerStatus() {
+        return appointmentService.countsPerStatus();
     }
 
     @PatchMapping("/cancel-day")
-    public ResponseEntity<?> cancelDoctorDay(@RequestParam UUID doctorId,
-                                             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ResponseEntity.ok(Map.of("message", appointmentService.cancelDoctorDay(doctorId, date)));
+    public Message cancelDoctorDay(@RequestParam("doctorId") UUID doctorId,
+                                   @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate day) {
+        return new Message(appointmentService.cancelDoctorDay(doctorId, day) + " appointments cancelled");
     }
 
-    // bonus: sort arrives as "property,direction", e.g. appointmentDate,desc
     @GetMapping("/page")
-    public ResponseEntity<?> getAppointmentsPage(@RequestParam(defaultValue = "0") int page,
-                                                 @RequestParam(defaultValue = "5") int size,
-                                                 @RequestParam(defaultValue = "appointmentDate,asc") String sort) {
-
-        if (page < 0 || size < 1) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Page must be 0 or more and size at least 1"));
-        }
-
-        String[] parts = sort.split(",");
-        String property = parts[0].trim();
-        Sort.Direction direction = parts.length > 1
-                ? Sort.Direction.fromOptionalString(parts[1].trim()).orElse(null)
-                : Sort.Direction.ASC;
-
-        if (property.isEmpty() || direction == null) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Sort must look like appointmentDate,desc"));
-        }
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, property));
-
-        return ResponseEntity.ok(appointmentService.getAppointmentsPage(pageable));
+    public Page<Appointment> page(@RequestParam(value = "page", defaultValue = "0") int page,
+                                  @RequestParam(value = "size", defaultValue = "5") int size,
+                                  @RequestParam(value = "sort", defaultValue = "appointmentDate,asc") String sort) {
+        return appointmentService.page(pageRequest(page, size, sort));
     }
 
     @DeleteMapping("/cancelled-before")
-    public ResponseEntity<?> deleteCancelledBefore(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ResponseEntity.ok(Map.of("message", appointmentService.deleteCancelledBefore(date)));
+    public Message deleteCancelledBefore(
+            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate day) {
+        return new Message(appointmentService.deleteCancelledBefore(day) + " appointments deleted");
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<?> changeStatus(@PathVariable UUID id, @RequestParam AppointmentStatus status) {
-        return ApiResponses.fromMessage(appointmentService.changeStatus(id, status), HttpStatus.OK);
+    public Message changeStatus(@PathVariable("id") UUID appointmentId,
+                                @RequestParam("status") AppointmentStatus status) {
+        appointmentService.changeStatus(appointmentId, status);
+        return new Message("Appointment status updated successfully");
     }
 
     @PatchMapping("/{id}/reschedule")
-    public ResponseEntity<?> reschedule(@PathVariable UUID id,
-                                        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate newDate) {
-        return ApiResponses.fromMessage(appointmentService.reschedule(id, newDate), HttpStatus.OK);
+    public Message reschedule(@PathVariable("id") UUID appointmentId,
+                              @RequestParam("newDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate newDay) {
+        appointmentService.reschedule(appointmentId, newDay);
+        return new Message("Appointment rescheduled successfully");
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getAppointmentById(@PathVariable UUID id) {
-        return ApiResponses.fromData(appointmentService.getAppointmentById(id).orElse(null), AppointmentService.APPOINTMENT_NOT_FOUND);
+    public Appointment appointmentById(@PathVariable("id") UUID appointmentId) {
+        return appointmentService.appointmentById(appointmentId);
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteAppointment(@PathVariable UUID id) {
-        return ApiResponses.fromMessage(appointmentService.deleteAppointment(id), HttpStatus.OK);
+    public Message delete(@PathVariable("id") UUID appointmentId) {
+        appointmentService.delete(appointmentId);
+        return new Message("Appointment is deleted Successfully");
+    }
+
+    private static Pageable pageRequest(int page, int size, String sort) {
+        ensure(page >= 0 && size >= 1, "Page must be 0 or more and size at least 1");
+
+        String[] sortParts = sort.split(",");
+        String property = sortParts.length > 0 ? sortParts[0].trim() : "";
+        Optional<Sort.Direction> direction = sortParts.length > 1
+                ? Sort.Direction.fromOptionalString(sortParts[1].trim())
+                : Optional.of(Sort.Direction.ASC);
+
+        ensure(!property.isEmpty() && direction.isPresent(), "Sort must look like appointmentDate,desc");
+
+        return PageRequest.of(page, size, Sort.by(direction.get(), property));
     }
 }

@@ -1,5 +1,7 @@
 package kigali.clinic.clinicmanagement.repositories;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import kigali.clinic.clinicmanagement.models.Appointment;
 import kigali.clinic.clinicmanagement.models.AppointmentStatus;
 import kigali.clinic.clinicmanagement.models.Patient;
@@ -16,7 +18,6 @@ import java.util.UUID;
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, UUID> {
 
-    // A4: appointmentDate carries a time, so "that date" is the range from the start to the end of the day
     boolean existsByDoctorIdAndAppointmentDateBetweenAndStatusNot(
             UUID doctorId, LocalDateTime dayStart, LocalDateTime dayEnd, AppointmentStatus status);
 
@@ -31,43 +32,50 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
 
     boolean existsByPatientId(UUID patientId);
 
-    // D1
     List<Appointment> findByDoctorIdAndAppointmentDateBetweenAndStatusNotOrderByAppointmentDateAsc(
             UUID doctorId, LocalDateTime dayStart, LocalDateTime dayEnd, AppointmentStatus status);
 
-    // D2
     List<Appointment> findByPatientAndAppointmentDateGreaterThanEqualAndStatusInOrderByAppointmentDateAsc(
             Patient patient, LocalDateTime from, List<AppointmentStatus> statuses);
 
-    // D4
     long countByAppointmentDateBetween(LocalDateTime start, LocalDateTime end);
 
     long countByStatus(AppointmentStatus status);
 
-    // C1: a status nobody uses forms no group, so it does not show up
-    @Query("SELECT a.status, COUNT(a) FROM Appointment a "
-            + "GROUP BY a.status ORDER BY COUNT(a) DESC, a.status ASC")
-    List<Object[]> countAppointmentsPerStatus();
+    @Query("""
+            SELECT new kigali.clinic.clinicmanagement.repositories.AppointmentRepository$StatusCount(
+                a.status, COUNT(a))
+            FROM Appointment a
+            GROUP BY a.status
+            ORDER BY COUNT(a) DESC, a.status ASC
+            """)
+    List<StatusCount> countPerStatus();
 
-    // C4: appointmentDate carries a time, so the day is matched as [dayStart, nextDayStart).
-    // Bulk updates skip @PreUpdate, which is why updatedAt is set here.
     @Modifying(clearAutomatically = true)
-    @Query("UPDATE Appointment a "
-            + "SET a.status = kigali.clinic.clinicmanagement.models.AppointmentStatus.CANCELLED, "
-            + "a.updatedAt = :now "
-            + "WHERE a.doctor.id = :doctorId "
-            + "AND a.appointmentDate >= :dayStart AND a.appointmentDate < :nextDayStart "
-            + "AND a.status NOT IN (kigali.clinic.clinicmanagement.models.AppointmentStatus.COMPLETED, "
-            + "kigali.clinic.clinicmanagement.models.AppointmentStatus.CANCELLED)")
+    @Query("""
+            UPDATE Appointment a
+            SET a.status = kigali.clinic.clinicmanagement.models.AppointmentStatus.CANCELLED,
+                a.updatedAt = :now
+            WHERE a.doctor.id = :doctorId
+              AND a.appointmentDate >= :dayStart AND a.appointmentDate < :nextDayStart
+              AND a.status NOT IN (kigali.clinic.clinicmanagement.models.AppointmentStatus.COMPLETED,
+                                   kigali.clinic.clinicmanagement.models.AppointmentStatus.CANCELLED)
+            """)
     int cancelDoctorDay(@Param("doctorId") UUID doctorId,
                         @Param("dayStart") LocalDateTime dayStart,
                         @Param("nextDayStart") LocalDateTime nextDayStart,
                         @Param("now") LocalDateTime now);
 
-    // bonus: one JPQL DELETE, nothing is loaded first
     @Modifying(clearAutomatically = true)
-    @Query("DELETE FROM Appointment a "
-            + "WHERE a.status = kigali.clinic.clinicmanagement.models.AppointmentStatus.CANCELLED "
-            + "AND a.appointmentDate < :date")
-    int deleteCancelledBefore(@Param("date") LocalDateTime date);
+    @Query("""
+            DELETE FROM Appointment a
+            WHERE a.status = kigali.clinic.clinicmanagement.models.AppointmentStatus.CANCELLED
+              AND a.appointmentDate < :cutoff
+            """)
+    int deleteCancelledBefore(@Param("cutoff") LocalDateTime cutoff);
+
+    @JsonFormat(shape = JsonFormat.Shape.ARRAY)
+    @JsonPropertyOrder({"status", "count"})
+    record StatusCount(AppointmentStatus status, long count) {
+    }
 }

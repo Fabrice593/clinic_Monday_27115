@@ -54,8 +54,7 @@ public class PatientController {
 
     @GetMapping("/{ssNumber}/upcoming")
     public ResponseEntity<?> getUpcomingAppointments(@PathVariable String ssNumber) {
-        return ApiResponses.fromData(appointmentService.getUpcomingAppointments(ssNumber).orElse(null),
-                "That patient with that ssnumber does not exist");
+        return ResponseEntity.ok(appointmentService.upcomingFor(ssNumber));
     }
 
     @GetMapping("/{id}")
