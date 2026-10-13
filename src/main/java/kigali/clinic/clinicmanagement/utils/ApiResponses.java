@@ -3,6 +3,7 @@ package kigali.clinic.clinicmanagement.utils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Arrays;
 import java.util.Map;
 
 public final class ApiResponses {
@@ -28,18 +29,18 @@ public final class ApiResponses {
 
         String text = message.toLowerCase();
 
-        if (text.contains("success")) {
+        if (containsAny(text, "success", "added to", "removed from")) {
             return successStatus;
-        }
-
-        if (text.contains("not found")) {
+        } else if (containsAny(text, "not found", "does not exist")) {
             return HttpStatus.NOT_FOUND;
-        }
-
-        if (text.contains("already")) {
+        } else if (containsAny(text, "already", "taken by", "does not have", "has prescriptions")) {
             return HttpStatus.CONFLICT;
+        } else {
+            return HttpStatus.BAD_REQUEST;
         }
+    }
 
-        return HttpStatus.BAD_REQUEST;
+    private static boolean containsAny(String text, String... words) {
+        return Arrays.stream(words).anyMatch(text::contains);
     }
 }

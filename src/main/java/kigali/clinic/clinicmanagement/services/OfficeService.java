@@ -3,10 +3,12 @@ package kigali.clinic.clinicmanagement.services;
 import kigali.clinic.clinicmanagement.models.Office;
 import kigali.clinic.clinicmanagement.repositories.OfficeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static kigali.clinic.clinicmanagement.utils.Validations.isBlank;
@@ -37,6 +39,7 @@ public class OfficeService {
         }
 
         office.setId(null);
+        office.setName(normalize(office.getName()));
         office.setOfficeNumber(officeNumber);
         officeRepo.save(office);
 
@@ -66,6 +69,7 @@ public class OfficeService {
             return "Office with number " + officeNumber + " already exists";
         }
 
+        existing.setName(normalize(office.getName()));
         existing.setOfficeNumber(officeNumber);
         officeRepo.save(existing);
 
@@ -76,8 +80,17 @@ public class OfficeService {
         return officeRepo.findAll();
     }
 
-    public Office getOfficeById(UUID id) {
-        return officeRepo.findById(id).orElse(null);
+    public List<Office> getFreeOffices() {
+        return officeRepo.findFreeOffices();
+    }
+
+    // row is [name, officeNumber, appointmentCount]; a one-row page keeps only the top office
+    public Optional<Object[]> getBusiestOffice() {
+        return officeRepo.findOfficesByAppointmentCount(PageRequest.of(0, 1)).stream().findFirst();
+    }
+
+    public Optional<Office> getOfficeById(UUID id) {
+        return officeRepo.findById(id);
     }
 
     @Transactional

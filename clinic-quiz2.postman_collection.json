@@ -1,0 +1,1935 @@
+{
+  "info": {
+    "name": "clinic-quiz2",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Step 0 - Data",
+      "item": [
+        {
+          "name": "Create office 104 (stays free)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/offices/save",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "offices",
+                "save"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"officeNumber\": \"104\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Give Grace Ishimwe ss number 1001",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/update/{{graceId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "update",
+                "{{graceId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Grace\",\n  \"lastName\": \"Ishimwe\",\n  \"ssNumber\": \"1001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Give Patrick Ishimwe ss number 1002",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/update/{{patrickId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "update",
+                "{{patrickId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Patrick\",\n  \"lastName\": \"Ishimwe\",\n  \"ssNumber\": \"1002\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Give Emmanuel Niyonzima ss number 1003",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/update/{{emmanuelId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "update",
+                "{{emmanuelId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Emmanuel\",\n  \"lastName\": \"Niyonzima\",\n  \"ssNumber\": \"1003\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Give Josiane Mutoni ss number 1004",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/update/{{josianeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "update",
+                "{{josianeId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Josiane\",\n  \"lastName\": \"Mutoni\",\n  \"ssNumber\": \"1004\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Give Thierry Bizimana ss number 1005",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/update/{{thierryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "update",
+                "{{thierryId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Thierry\",\n  \"lastName\": \"Bizimana\",\n  \"ssNumber\": \"1005\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Same ss number twice (409)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/update/{{thierryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "update",
+                "{{thierryId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Thierry\",\n  \"lastName\": \"Bizimana\",\n  \"ssNumber\": \"1001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Give Mukeshimana office 103 (200)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{mukeshimanaId}}/office?officeNumber=103",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{mukeshimanaId}}",
+                "office"
+              ],
+              "query": [
+                {
+                  "key": "officeNumber",
+                  "value": "103"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Patrick's 2026-10-20 appointment with Uwimana (200)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{patrickUwimanaApptId}}/status?status=CANCELLED",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "{{patrickUwimanaApptId}}",
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "CANCELLED"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List patients (ss numbers)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List doctors (ids, offices, specializations)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "all"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Part A - Doctors and offices",
+      "item": [
+        {
+          "name": "A1 Add Neurology to Mukeshimana (200)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{mukeshimanaId}}/specializations/{{neurologyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{mukeshimanaId}}",
+                "specializations",
+                "{{neurologyId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A1 Add it again (409)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{mukeshimanaId}}/specializations/{{neurologyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{mukeshimanaId}}",
+                "specializations",
+                "{{neurologyId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A1 Unknown doctor (404)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{unknownId}}/specializations/{{neurologyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{unknownId}}",
+                "specializations",
+                "{{neurologyId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A1 Unknown specialization (404)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{mukeshimanaId}}/specializations/{{unknownId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{mukeshimanaId}}",
+                "specializations",
+                "{{unknownId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A2 Remove Neurology from Mukeshimana (200)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{mukeshimanaId}}/specializations/{{neurologyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{mukeshimanaId}}",
+                "specializations",
+                "{{neurologyId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A2 Remove it again (409)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{mukeshimanaId}}/specializations/{{neurologyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{mukeshimanaId}}",
+                "specializations",
+                "{{neurologyId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A2 Unknown doctor (404)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{unknownId}}/specializations/{{neurologyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{unknownId}}",
+                "specializations",
+                "{{neurologyId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A2 Unknown specialization (404)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{mukeshimanaId}}/specializations/{{unknownId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{mukeshimanaId}}",
+                "specializations",
+                "{{unknownId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A3 Free offices (only 104)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/offices/free",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "offices",
+                "free"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A4 Move Nsengiyumva to 104 (200)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{nsengiyumvaId}}/office?officeNumber=104",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{nsengiyumvaId}}",
+                "office"
+              ],
+              "query": [
+                {
+                  "key": "officeNumber",
+                  "value": "104"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A4 Old office 102 is free now (check with A3)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/offices/free",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "offices",
+                "free"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A4 Move Nsengiyumva back to 102 (200)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{nsengiyumvaId}}/office?officeNumber=102",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{nsengiyumvaId}}",
+                "office"
+              ],
+              "query": [
+                {
+                  "key": "officeNumber",
+                  "value": "102"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A4 Office taken by Uwimana (409)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{mukeshimanaId}}/office?officeNumber=101",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{mukeshimanaId}}",
+                "office"
+              ],
+              "query": [
+                {
+                  "key": "officeNumber",
+                  "value": "101"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A4 Unknown office number (404)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{mukeshimanaId}}/office?officeNumber=999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{mukeshimanaId}}",
+                "office"
+              ],
+              "query": [
+                {
+                  "key": "officeNumber",
+                  "value": "999"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Part B - Appointment rules",
+      "item": [
+        {
+          "name": "B1 Date in the past (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/save",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "save"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient\": {\n    \"id\": \"{{josianeId}}\"\n  },\n  \"doctor\": {\n    \"id\": \"{{mukeshimanaId}}\"\n  },\n  \"appointmentDate\": \"2026-10-01T10:00:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B1 Body status is ignored, saved as SCHEDULED (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/save",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "save"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient\": {\n    \"id\": \"{{josianeId}}\"\n  },\n  \"doctor\": {\n    \"id\": \"{{mukeshimanaId}}\"\n  },\n  \"appointmentDate\": \"2026-10-28T09:00:00\",\n  \"status\": \"COMPLETED\",\n  \"reason\": \"Headache follow up\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B2 Thierry's 11-05: SCHEDULED -> CONFIRMED (200)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{thierryMukeshimanaApptId}}/status?status=CONFIRMED",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "{{thierryMukeshimanaApptId}}",
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "CONFIRMED"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B2 CONFIRMED -> SCHEDULED (400)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{thierryMukeshimanaApptId}}/status?status=SCHEDULED",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "{{thierryMukeshimanaApptId}}",
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "SCHEDULED"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B2 COMPLETED -> SCHEDULED (400)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{emmanuelCompletedApptId}}/status?status=SCHEDULED",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "{{emmanuelCompletedApptId}}",
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "SCHEDULED"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B2 Unknown status (400)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{thierryMukeshimanaApptId}}/status?status=PENDING",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "{{thierryMukeshimanaApptId}}",
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B2 Unknown appointment (404)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{unknownId}}/status?status=CONFIRMED",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "{{unknownId}}",
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "CONFIRMED"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B3 Reschedule Grace's 10-22 to 10-30 (200)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{graceNsengiyumvaApptId}}/reschedule?newDate=2026-10-30",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "{{graceNsengiyumvaApptId}}",
+                "reschedule"
+              ],
+              "query": [
+                {
+                  "key": "newDate",
+                  "value": "2026-10-30"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B3 Doctor already booked that date (409)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{graceMukeshimanaApptId}}/reschedule?newDate=2026-11-05",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "{{graceMukeshimanaApptId}}",
+                "reschedule"
+              ],
+              "query": [
+                {
+                  "key": "newDate",
+                  "value": "2026-11-05"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B3 COMPLETED cannot be rescheduled (400)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{emmanuelCompletedApptId}}/reschedule?newDate=2026-10-30",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "{{emmanuelCompletedApptId}}",
+                "reschedule"
+              ],
+              "query": [
+                {
+                  "key": "newDate",
+                  "value": "2026-10-30"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B3 New date in the past (400)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{graceMukeshimanaApptId}}/reschedule?newDate=2026-10-01",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "{{graceMukeshimanaApptId}}",
+                "reschedule"
+              ],
+              "query": [
+                {
+                  "key": "newDate",
+                  "value": "2026-10-01"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B3 Unknown appointment (404)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{unknownId}}/reschedule?newDate=2026-10-30",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "{{unknownId}}",
+                "reschedule"
+              ],
+              "query": [
+                {
+                  "key": "newDate",
+                  "value": "2026-10-30"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B3 Move Grace's appointment back to 10-22 (200)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{graceNsengiyumvaApptId}}/reschedule?newDate=2026-10-22",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "{{graceNsengiyumvaApptId}}",
+                "reschedule"
+              ],
+              "query": [
+                {
+                  "key": "newDate",
+                  "value": "2026-10-22"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Part C - Prescriptions",
+      "item": [
+        {
+          "name": "C1 Paracetamol for Emmanuel's COMPLETED appointment (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/save?appointmentId={{emmanuelCompletedApptId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "save"
+              ],
+              "query": [
+                {
+                  "key": "appointmentId",
+                  "value": "{{emmanuelCompletedApptId}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicineName\": \"Paracetamol\",\n  \"dosage\": \"2 tablets when in pain\",\n  \"durationDays\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "C1 Paracetamol for Patrick's COMPLETED appointment (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/save?appointmentId={{patrickCompletedApptId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "save"
+              ],
+              "query": [
+                {
+                  "key": "appointmentId",
+                  "value": "{{patrickCompletedApptId}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicineName\": \"Paracetamol\",\n  \"dosage\": \"2 tablets when in pain\",\n  \"durationDays\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "C1 Amoxicillin for Patrick's COMPLETED appointment (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/save?appointmentId={{patrickCompletedApptId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "save"
+              ],
+              "query": [
+                {
+                  "key": "appointmentId",
+                  "value": "{{patrickCompletedApptId}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicineName\": \"Amoxicillin\",\n  \"dosage\": \"1 tablet, 3 times a day\",\n  \"durationDays\": 7\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "C1 Amoxicillin for Emmanuel's COMPLETED appointment (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/save?appointmentId={{emmanuelCompletedApptId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "save"
+              ],
+              "query": [
+                {
+                  "key": "appointmentId",
+                  "value": "{{emmanuelCompletedApptId}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicineName\": \"Amoxicillin\",\n  \"dosage\": \"1 tablet, 3 times a day\",\n  \"durationDays\": 7\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "C1 Appointment is not COMPLETED (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/save?appointmentId={{graceMukeshimanaApptId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "save"
+              ],
+              "query": [
+                {
+                  "key": "appointmentId",
+                  "value": "{{graceMukeshimanaApptId}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicineName\": \"Amoxicillin\",\n  \"dosage\": \"1 tablet, 3 times a day\",\n  \"durationDays\": 7\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "C1 Missing medicine name (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/save?appointmentId={{emmanuelCompletedApptId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "save"
+              ],
+              "query": [
+                {
+                  "key": "appointmentId",
+                  "value": "{{emmanuelCompletedApptId}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dosage\": \"1 tablet\",\n  \"durationDays\": 7\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "C1 Unknown appointment (404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/save?appointmentId={{unknownId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "save"
+              ],
+              "query": [
+                {
+                  "key": "appointmentId",
+                  "value": "{{unknownId}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicineName\": \"Amoxicillin\",\n  \"dosage\": \"1 tablet, 3 times a day\",\n  \"durationDays\": 7\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "C2 Prescriptions of Emmanuel's appointment (saves newest id)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/appointment/{{emmanuelCompletedApptId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "appointment",
+                "{{emmanuelCompletedApptId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// keep the newest prescription's id for the C4 requests",
+                  "const list = pm.response.json();",
+                  "if (Array.isArray(list) && list.length) {",
+                  "    list.sort((a, b) => a.createdAt.localeCompare(b.createdAt));",
+                  "    pm.collectionVariables.set('prescriptionId', list[list.length - 1].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C2 Appointment without prescriptions -> []",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/appointment/{{graceMukeshimanaApptId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "appointment",
+                "{{graceMukeshimanaApptId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "C2 Unknown appointment (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/appointment/{{unknownId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "appointment",
+                "{{unknownId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "C3 Prescription history of Emmanuel (1003)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/patient/{{emmanuelSsNumber}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "patient",
+                "{{emmanuelSsNumber}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "C3 Patient without prescriptions -> [] (1004)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/patient/1004",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "patient",
+                "1004"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "C4 Update the newest prescription (200)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/update/{{prescriptionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "update",
+                "{{prescriptionId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicineName\": \"Amoxicillin\",\n  \"dosage\": \"2 tablets, twice a day\",\n  \"durationDays\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "C4 Update unknown prescription (404)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/update/{{unknownId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "update",
+                "{{unknownId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicineName\": \"Amoxicillin\",\n  \"dosage\": \"2 tablets, twice a day\",\n  \"durationDays\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "C4 Delete Emmanuel's appointment, it has prescriptions (409)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/delete/{{emmanuelCompletedApptId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "delete",
+                "{{emmanuelCompletedApptId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "C4 Delete the newest prescription (200)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/delete/{{prescriptionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "delete",
+                "{{prescriptionId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "C4 Delete it again (404)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/delete/{{prescriptionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "delete",
+                "{{prescriptionId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Part D - Agenda and reports",
+      "item": [
+        {
+          "name": "D1 Uwimana's agenda on 2026-10-20 (Patrick's CANCELLED one is hidden)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{uwimanaId}}/agenda?date=2026-10-20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{uwimanaId}}",
+                "agenda"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-10-20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "D1 Unknown doctor (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{unknownId}}/agenda?date=2026-10-20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{unknownId}}",
+                "agenda"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-10-20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "D2 Grace's upcoming appointments (1001)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/{{graceSsNumber}}/upcoming",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "{{graceSsNumber}}",
+                "upcoming"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "D2 Unknown ss number (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/9999/upcoming",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "9999",
+                "upcoming"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "D3 Search doctors by name (mana)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/search?name=mana",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "mana"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "D3 Search is case-insensitive (UWI)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/search?name=UWI",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "UWI"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "D3 Matches the first name too (aline)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/search?name=aline",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "aline"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "D3 Sheet example gis: no Mugisha in this data -> []",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/search?name=gis",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "gis"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "D4 Clinic dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "dashboard",
+                "summary"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bonus",
+      "item": [
+        {
+          "name": "Bonus Most prescribed medicines",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/stats/top-medicines",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "stats",
+                "top-medicines"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bonus Doctor workload in October",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/workload?start=2026-10-01&end=2026-10-31",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "workload"
+              ],
+              "query": [
+                {
+                  "key": "start",
+                  "value": "2026-10-01"
+                },
+                {
+                  "key": "end",
+                  "value": "2026-10-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bonus Doctor workload in October and November",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/workload?start=2026-10-01&end=2026-11-30",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "workload"
+              ],
+              "query": [
+                {
+                  "key": "start",
+                  "value": "2026-10-01"
+                },
+                {
+                  "key": "end",
+                  "value": "2026-11-30"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:1015",
+      "type": "string"
+    },
+    {
+      "key": "uwimanaId",
+      "value": "492a39de-7630-47c2-bdff-b0b4642c7de6",
+      "type": "string"
+    },
+    {
+      "key": "nsengiyumvaId",
+      "value": "70b38845-bf89-4451-87d7-a7dcf2c119e5",
+      "type": "string"
+    },
+    {
+      "key": "mukeshimanaId",
+      "value": "077155c6-1244-4f3e-8278-6d3caaa70292",
+      "type": "string"
+    },
+    {
+      "key": "neurologyId",
+      "value": "3c738557-5e64-4a97-9d27-ce20df8cb538",
+      "type": "string"
+    },
+    {
+      "key": "graceId",
+      "value": "54986a77-2030-4234-91fd-b7aaf679d813",
+      "type": "string"
+    },
+    {
+      "key": "patrickId",
+      "value": "fd858a31-4f9a-4330-804a-5f70476a1da0",
+      "type": "string"
+    },
+    {
+      "key": "emmanuelId",
+      "value": "fbb88d8a-14bb-4a6a-bcb8-17cdb28cb123",
+      "type": "string"
+    },
+    {
+      "key": "josianeId",
+      "value": "c68ed321-dfcd-4a9e-9e17-687846de428b",
+      "type": "string"
+    },
+    {
+      "key": "thierryId",
+      "value": "4743eb0e-5f6f-4106-903d-008a22832a6c",
+      "type": "string"
+    },
+    {
+      "key": "graceSsNumber",
+      "value": "1001",
+      "type": "string"
+    },
+    {
+      "key": "emmanuelSsNumber",
+      "value": "1003",
+      "type": "string"
+    },
+    {
+      "key": "graceNsengiyumvaApptId",
+      "value": "0791ccc2-f05d-4589-84b8-0802a8992931",
+      "type": "string"
+    },
+    {
+      "key": "graceMukeshimanaApptId",
+      "value": "7e12d6a1-da8e-4313-884d-c28c60c382ab",
+      "type": "string"
+    },
+    {
+      "key": "thierryMukeshimanaApptId",
+      "value": "d6f1af36-efcf-4e71-8644-393e09f5e1e9",
+      "type": "string"
+    },
+    {
+      "key": "patrickUwimanaApptId",
+      "value": "ff50efc6-53d3-41d2-bb62-b22f8686b13a",
+      "type": "string"
+    },
+    {
+      "key": "emmanuelCompletedApptId",
+      "value": "6cbb9a7e-7798-4c86-9c4c-fed800066fec",
+      "type": "string"
+    },
+    {
+      "key": "patrickCompletedApptId",
+      "value": "54760ec0-aab4-4d4f-974f-3e3db47fe022",
+      "type": "string"
+    },
+    {
+      "key": "prescriptionId",
+      "value": "set-by-the-C2-request",
+      "type": "string"
+    },
+    {
+      "key": "unknownId",
+      "value": "00000000-0000-0000-0000-000000000000",
+      "type": "string"
+    }
+  ]
+}

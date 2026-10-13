@@ -11,16 +11,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import static kigali.clinic.clinicmanagement.utils.Dates.endOfDay;
 import static kigali.clinic.clinicmanagement.utils.Validations.containsDigit;
 import static kigali.clinic.clinicmanagement.utils.Validations.isBlank;
 import static kigali.clinic.clinicmanagement.utils.Validations.normalize;
 
 @Service
 public class DoctorService {
+
+    public static final String DOCTOR_NOT_FOUND = "The doctor with that id does not exist";
+
+    private static final String SPECIALIZATION_NOT_FOUND = "That specialization does not exist";
 
     @Autowired
     private DoctorRepository doctorRepo;
@@ -70,7 +77,7 @@ public class DoctorService {
         Doctor existing = doctorRepo.findById(id).orElse(null);
 
         if (existing == null) {
-            return "Doctor not found";
+            return DOCTOR_NOT_FOUND;
         }
 
         String error = validateNames(doctor);
@@ -104,8 +111,102 @@ public class DoctorService {
         return doctorRepo.findAll();
     }
 
-    public Doctor getDoctorById(UUID id) {
-        return doctorRepo.findById(id).orElse(null);
+    public List<Doctor> getDoctorsBySpecialization(String name) {
+        return doctorRepo.findDoctorsBySpecialization(name.trim());
+    }
+
+    public List<Doctor> getDoctorsWithoutOffice() {
+        return doctorRepo.findDoctorsWithoutOffice();
+    }
+
+    public List<Doctor> searchDoctors(String name) {
+        return doctorRepo.searchByName(name.trim());
+    }
+
+    // bonus: both dates are inclusive, so the range runs to the very end of the last day
+    public List<Object[]> getWorkload(LocalDate start, LocalDate end) {
+        return doctorRepo.findDoctorWorkload(start.atStartOfDay(), endOfDay(end));
+    }
+
+    public Optional<Doctor> getDoctorById(UUID id) {
+        return doctorRepo.findById(id);
+    }
+
+    // A1 + A2: Doctor owns the join table, so editing its list and saving the doctor writes the link
+    @Transactional
+    public String addSpecialization(UUID doctorId, UUID specializationId) {
+
+        Doctor doctor = doctorRepo.findById(doctorId).orElse(null);
+
+        if (doctor == null) {
+            return DOCTOR_NOT_FOUND;
+        }
+
+        Specialization specialization = specializationRepo.findById(specializationId).orElse(null);
+
+        if (specialization == null) {
+            return SPECIALIZATION_NOT_FOUND;
+        }
+
+        if (doctor.getSpecializations().contains(specialization)) {
+            return "The doctor already has that specialization";
+        }
+
+        doctor.getSpecializations().add(specialization);
+        doctorRepo.save(doctor);
+
+        return "Specialization added to the doctor";
+    }
+
+    // only the row in doctor_specializations goes; the specialization itself stays
+    @Transactional
+    public String removeSpecialization(UUID doctorId, UUID specializationId) {
+
+        Doctor doctor = doctorRepo.findById(doctorId).orElse(null);
+
+        if (doctor == null) {
+            return DOCTOR_NOT_FOUND;
+        }
+
+        Specialization specialization = specializationRepo.findById(specializationId).orElse(null);
+
+        if (specialization == null) {
+            return SPECIALIZATION_NOT_FOUND;
+        }
+
+        if (!doctor.getSpecializations().remove(specialization)) {
+            return "The doctor does not have that specialization";
+        }
+
+        doctorRepo.save(doctor);
+
+        return "Specialization removed from the doctor";
+    }
+
+    // A4: Doctor holds office_id, so the move is saved on the doctor and the old office is free again
+    @Transactional
+    public String changeOffice(UUID doctorId, String officeNumber) {
+
+        Doctor doctor = doctorRepo.findById(doctorId).orElse(null);
+
+        if (doctor == null) {
+            return DOCTOR_NOT_FOUND;
+        }
+
+        Office office = officeRepo.findByOfficeNumber(normalize(officeNumber)).orElse(null);
+
+        if (office == null) {
+            return "The office with that office number does not exist";
+        }
+
+        if (doctorRepo.existsByOfficeIdAndIdNot(office.getId(), doctorId)) {
+            return "That office is taken by other doctor";
+        }
+
+        doctor.setOffice(office);
+        doctorRepo.save(doctor);
+
+        return "Office changed successfully";
     }
 
     @Transactional
@@ -114,7 +215,7 @@ public class DoctorService {
         Doctor existing = doctorRepo.findById(id).orElse(null);
 
         if (existing == null) {
-            return "Doctor not found";
+            return DOCTOR_NOT_FOUND;
         }
 
         if (appointmentRepo.existsByDoctorId(id)) {

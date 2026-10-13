@@ -1,6 +1,7 @@
 package kigali.clinic.clinicmanagement.models;
 
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,13 +24,16 @@ public class Appointment extends BaseEntity {
     @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
 
+    // the alias keeps older request bodies that still send "date" working
+    @JsonAlias("date")
     @Column(name = "appointment_datetime", nullable = false)
-    private LocalDateTime date;
+    private LocalDateTime appointmentDate;
 
     @Column(name = "reason", columnDefinition = "TEXT")
     private String reason;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private String status;
+    private AppointmentStatus status;
 
 }

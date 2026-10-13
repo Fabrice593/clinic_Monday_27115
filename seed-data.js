@@ -33,14 +33,14 @@ async function main() {
   const offices = Object.fromEntries((await list("office")).map((o) => [o.officeNumber, o]));
 
   const patients = [
-    ["Grace", "Ishimwe"],
-    ["Patrick", "Ishimwe"],
-    ["Emmanuel", "Niyonzima"],
-    ["Josiane", "Mutoni"],
-    ["Thierry", "Bizimana"],
+    ["Grace", "Ishimwe", "1001"],
+    ["Patrick", "Ishimwe", "1002"],
+    ["Emmanuel", "Niyonzima", "1003"],
+    ["Josiane", "Mutoni", "1004"],
+    ["Thierry", "Bizimana", "1005"],
   ];
-  for (const [firstName, lastName] of patients) {
-    await call("POST", "/api/patient/save", { firstName, lastName });
+  for (const [firstName, lastName, ssNumber] of patients) {
+    await call("POST", "/api/patient/save", { firstName, lastName, ssNumber });
   }
 
   const doctors = [
@@ -64,6 +64,8 @@ async function main() {
 
   // [patient, doctor last name, date, reason, final status]
   const appointments = [
+    // saved and cancelled before Grace's, since a doctor takes one live appointment per day
+    ["Patrick Ishimwe", "Uwimana", "2026-10-20T11:00:00", "Blood pressure check", "CANCELLED"],
     ["Grace Ishimwe", "Uwimana", "2026-10-20T09:00:00", "Chest pain follow up", "SCHEDULED"],
     ["Grace Ishimwe", "Nsengiyumva", "2026-10-22T10:00:00", "Skin rash", "CONFIRMED"],
     ["Grace Ishimwe", "Mukeshimana", "2026-11-03T14:00:00", "Child vaccination", "SCHEDULED"],
@@ -72,22 +74,36 @@ async function main() {
     ["Thierry Bizimana", "Mukeshimana", "2026-11-05T09:00:00", "Headache", "SCHEDULED"],
     ["Patrick Ishimwe", "Nsengiyumva", "2026-11-10T11:30:00", "Mole removal", "COMPLETED"],
     ["Thierry Bizimana", "Uwimana", "2026-11-17T10:00:00", "ECG review", "CONFIRMED"],
-    ["Patrick Ishimwe", "Uwimana", "2026-10-20T11:00:00", "Blood pressure check", "CONFIRMED"],
     ["Josiane Mutoni", "Nsengiyumva", "2026-10-08T15:00:00", "Eczema review", "CANCELLED"],
   ];
+  // every appointment is saved as SCHEDULED; a status then moves one step at a time
+  const statusSteps = {
+    SCHEDULED: [],
+    CONFIRMED: ["CONFIRMED"],
+    COMPLETED: ["CONFIRMED", "COMPLETED"],
+    CANCELLED: ["CANCELLED"],
+  };
   for (const [patient, doctor, date, reason, status] of appointments) {
+    // only future dates can be booked, so a past one is booked a year later and moved back by the update
+    const isPast = new Date(date) < new Date();
     const body = {
       patient: { id: patientId[patient] },
       doctor: { id: doctorId[doctor] },
-      date,
+      appointmentDate: isPast ? date.replace(/^\d{4}/, (year) => String(Number(year) + 1)) : date,
       reason,
     };
     await call("POST", "/api/appointment/save", body);
-    if (status !== "SCHEDULED") {
-      const saved = (await list("appointment")).find(
-        (a) => a.patient.id === body.patient.id && a.date === date && a.doctor.id === body.doctor.id
-      );
-      await call("PUT", `/api/appointment/update/${saved.id}`, { ...body, status });
+    const saved = (await list("appointment")).find(
+      (a) =>
+        a.patient.id === body.patient.id &&
+        a.appointmentDate === body.appointmentDate &&
+        a.doctor.id === body.doctor.id
+    );
+    if (isPast) {
+      await call("PUT", `/api/appointment/update/${saved.id}`, { ...body, appointmentDate: date });
+    }
+    for (const step of statusSteps[status]) {
+      await call("PATCH", `/api/appointments/${saved.id}/status?status=${step}`);
     }
   }
 

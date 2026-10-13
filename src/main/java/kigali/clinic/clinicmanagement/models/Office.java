@@ -16,6 +16,10 @@ import lombok.Setter;
 public class Office extends BaseEntity  {
 
 
+    // nullable so the column can be added to tables that already hold offices
+    @Column(name = "name", length = 100)
+    private String name;
+
     @Column(name = "office_number", nullable = false, length = 20)
     private String officeNumber;
 
