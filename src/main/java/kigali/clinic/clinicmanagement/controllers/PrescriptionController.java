@@ -1,51 +1,55 @@
 package kigali.clinic.clinicmanagement.controllers;
 
 import kigali.clinic.clinicmanagement.models.Prescription;
-import kigali.clinic.clinicmanagement.services.AppointmentService;
+import kigali.clinic.clinicmanagement.repositories.PrescriptionRepository.MedicineUsage;
 import kigali.clinic.clinicmanagement.services.PrescriptionService;
-import kigali.clinic.clinicmanagement.utils.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
+import kigali.clinic.clinicmanagement.utils.ApiResponses.Message;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/prescriptions")
+@RequiredArgsConstructor
 public class PrescriptionController {
 
-    @Autowired
-    private PrescriptionService prescriptionService;
+    private final PrescriptionService prescriptionService;
 
     @PostMapping("/save")
-    public ResponseEntity<?> savePrescription(@RequestParam UUID appointmentId, @RequestBody Prescription prescription) {
-        return ApiResponses.fromMessage(prescriptionService.savePrescription(appointmentId, prescription), HttpStatus.CREATED);
+    @ResponseStatus(HttpStatus.CREATED)
+    public Message issue(@RequestParam("appointmentId") UUID appointmentId,
+                         @RequestBody Prescription.Details details) {
+        prescriptionService.issue(appointmentId, details);
+        return new Message("Prescription saved successfully");
     }
 
     @GetMapping("/appointment/{appointmentId}")
-    public ResponseEntity<?> getPrescriptionsOfAppointment(@PathVariable UUID appointmentId) {
-        return ApiResponses.fromData(prescriptionService.getPrescriptionsOfAppointment(appointmentId).orElse(null),
-                AppointmentService.APPOINTMENT_NOT_FOUND);
+    public List<Prescription> prescriptionsOfAppointment(@PathVariable("appointmentId") UUID appointmentId) {
+        return prescriptionService.prescriptionsOfAppointment(appointmentId);
     }
 
     @GetMapping("/patient/{ssNumber}")
-    public ResponseEntity<?> getPatientHistory(@PathVariable String ssNumber) {
-        return ResponseEntity.ok(prescriptionService.getPatientHistory(ssNumber));
+    public List<Prescription> historyOfPatient(@PathVariable("ssNumber") String ssNumber) {
+        return prescriptionService.historyOfPatient(ssNumber);
     }
 
     @GetMapping("/stats/top-medicines")
-    public ResponseEntity<?> getTopMedicines() {
-        return ResponseEntity.ok(prescriptionService.getTopMedicines());
+    public List<MedicineUsage> topMedicines() {
+        return prescriptionService.rankMedicinesByUsage();
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updatePrescription(@PathVariable UUID id, @RequestBody Prescription prescription) {
-        return ApiResponses.fromMessage(prescriptionService.updatePrescription(id, prescription), HttpStatus.OK);
+    public Message revise(@PathVariable("id") UUID prescriptionId, @RequestBody Prescription.Details details) {
+        prescriptionService.revise(prescriptionId, details);
+        return new Message("Prescription updated successfully");
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deletePrescription(@PathVariable UUID id) {
-        return ApiResponses.fromMessage(prescriptionService.deletePrescription(id), HttpStatus.OK);
+    public Message delete(@PathVariable("id") UUID prescriptionId) {
+        prescriptionService.delete(prescriptionId);
+        return new Message("Prescription deleted successfully");
     }
 }

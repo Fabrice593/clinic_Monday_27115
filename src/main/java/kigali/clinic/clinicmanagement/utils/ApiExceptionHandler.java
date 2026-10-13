@@ -17,6 +17,11 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
+    @ExceptionHandler(ApiResponses.Failure.class)
+    public ResponseEntity<ApiResponses.Message> handleFailure(ApiResponses.Failure failure) {
+        return ResponseEntity.status(failure.status()).body(new ApiResponses.Message(failure.getMessage()));
+    }
+
     @ExceptionHandler(DateTimeParseException.class)
     public ResponseEntity<?> handleBadDate(DateTimeParseException e) {
         return ResponseEntity.badRequest().body(Map.of("message", "Dates must use the format yyyy-MM-dd"));

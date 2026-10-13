@@ -12,6 +12,12 @@ public final class Validations {
     private Validations() {
     }
 
+    public static void ensure(boolean condition, String violationMessage) {
+        if (!condition) {
+            throw ApiResponses.badRequest(violationMessage);
+        }
+    }
+
     public static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }

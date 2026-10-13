@@ -1,6 +1,7 @@
 package kigali.clinic.clinicmanagement.repositories;
 
-import kigali.clinic.clinicmanagement.models.Appointment;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import kigali.clinic.clinicmanagement.models.Prescription;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,19 +14,28 @@ import java.util.UUID;
 @Repository
 public interface PrescriptionRepository extends JpaRepository<Prescription, UUID> {
 
-    // C2
-    List<Prescription> findByAppointment(Appointment appointment);
+    List<Prescription> findAllByAppointmentIdOrderByCreatedAtAsc(UUID appointmentId);
 
-    // C4: an appointment with prescriptions can not be deleted
     boolean existsByAppointmentId(UUID appointmentId);
 
-    // C3: single-valued relations are walked with dots, no JOIN needed
-    @Query("SELECT p FROM Prescription p WHERE p.appointment.patient.ssNumber = :ssNumber "
-            + "ORDER BY p.issuedDate DESC, p.createdAt DESC")
-    List<Prescription> findPatientHistory(@Param("ssNumber") String ssNumber);
+    @Query("""
+            SELECT p FROM Prescription p
+            WHERE p.appointment.patient.ssNumber = :ssNumber
+            ORDER BY p.issuedDate DESC, p.createdAt DESC
+            """)
+    List<Prescription> findHistoryOfPatient(@Param("ssNumber") String ssNumber);
 
-    // bonus: one row per medicine, e.g. ["Amoxicillin", 3]
-    @Query("SELECT p.medicineName, COUNT(p) FROM Prescription p "
-            + "GROUP BY p.medicineName ORDER BY COUNT(p) DESC, p.medicineName ASC")
-    List<Object[]> findTopMedicines();
+    @Query("""
+            SELECT new kigali.clinic.clinicmanagement.repositories.PrescriptionRepository$MedicineUsage(
+                p.medicineName, COUNT(p))
+            FROM Prescription p
+            GROUP BY p.medicineName
+            ORDER BY COUNT(p) DESC, p.medicineName ASC
+            """)
+    List<MedicineUsage> rankMedicinesByUsage();
+
+    @JsonFormat(shape = JsonFormat.Shape.ARRAY)
+    @JsonPropertyOrder({"medicineName", "timesPrescribed"})
+    record MedicineUsage(String medicineName, long timesPrescribed) {
+    }
 }
