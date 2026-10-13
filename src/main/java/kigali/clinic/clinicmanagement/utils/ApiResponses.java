@@ -36,6 +36,10 @@ public final class ApiResponses {
         return new Failure(HttpStatus.BAD_REQUEST, message);
     }
 
+    public static Failure conflict(String message) {
+        return new Failure(HttpStatus.CONFLICT, message);
+    }
+
     public static ResponseEntity<?> fromMessage(String message, HttpStatus successStatus) {
         return new ResponseEntity<>(Map.of("message", message), statusOf(message, successStatus));
     }

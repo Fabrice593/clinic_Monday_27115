@@ -1,54 +1,59 @@
 package kigali.clinic.clinicmanagement.controllers;
 
 import kigali.clinic.clinicmanagement.models.Office;
+import kigali.clinic.clinicmanagement.repositories.OfficeRepository.OfficeLoad;
 import kigali.clinic.clinicmanagement.services.OfficeService;
-import kigali.clinic.clinicmanagement.utils.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
+import kigali.clinic.clinicmanagement.utils.ApiResponses.Message;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping({"/api/office", "/api/offices"})
+@RequiredArgsConstructor
 public class OfficeController {
 
-    @Autowired
-    private OfficeService officeService;
+    private final OfficeService officeService;
 
     @PostMapping("/save")
-    public ResponseEntity<?> saveOffice(@RequestBody Office office) {
-        return ApiResponses.fromMessage(officeService.saveOffice(office), HttpStatus.CREATED);
+    @ResponseStatus(HttpStatus.CREATED)
+    public Message open(@RequestBody Office.Details details) {
+        officeService.open(details);
+        return new Message("Office is saved Successfully");
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateOffice(@PathVariable UUID id, @RequestBody Office office) {
-        return ApiResponses.fromMessage(officeService.updateOffice(id, office), HttpStatus.OK);
+    public Message revise(@PathVariable("id") UUID officeId, @RequestBody Office.Details details) {
+        officeService.revise(officeId, details);
+        return new Message("Office is updated Successfully");
     }
 
     @GetMapping("/all")
-    public ResponseEntity<?> getAllOffices() {
-        return ResponseEntity.ok(officeService.getAllOffices());
+    public List<Office> allOffices() {
+        return officeService.allOffices();
     }
 
     @GetMapping("/free")
-    public ResponseEntity<?> getFreeOffices() {
-        return ResponseEntity.ok(officeService.getFreeOffices());
+    public List<Office> freeOffices() {
+        return officeService.freeOffices();
     }
 
     @GetMapping("/busiest")
-    public ResponseEntity<?> getBusiestOffice() {
-        return ApiResponses.fromData(officeService.getBusiestOffice().orElse(null), "No appointments yet");
+    public OfficeLoad busiestOffice() {
+        return officeService.busiestOffice();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getOfficeById(@PathVariable UUID id) {
-        return ApiResponses.fromData(officeService.getOfficeById(id).orElse(null), "Office not found");
+    public Office officeById(@PathVariable("id") UUID officeId) {
+        return officeService.officeById(officeId);
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteOffice(@PathVariable UUID id) {
-        return ApiResponses.fromMessage(officeService.deleteOffice(id), HttpStatus.OK);
+    public Message delete(@PathVariable("id") UUID officeId) {
+        officeService.delete(officeId);
+        return new Message("Office is deleted Successfully");
     }
 }

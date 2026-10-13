@@ -1,306 +1,162 @@
 package kigali.clinic.clinicmanagement.services;
 
+import kigali.clinic.clinicmanagement.models.BaseEntity.Reference;
 import kigali.clinic.clinicmanagement.models.Doctor;
 import kigali.clinic.clinicmanagement.models.Office;
 import kigali.clinic.clinicmanagement.models.Specialization;
 import kigali.clinic.clinicmanagement.repositories.AppointmentRepository;
 import kigali.clinic.clinicmanagement.repositories.DoctorRepository;
+import kigali.clinic.clinicmanagement.repositories.DoctorRepository.Workload;
 import kigali.clinic.clinicmanagement.repositories.OfficeRepository;
 import kigali.clinic.clinicmanagement.repositories.SpecializationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static kigali.clinic.clinicmanagement.utils.ApiResponses.conflict;
+import static kigali.clinic.clinicmanagement.utils.ApiResponses.notFound;
 import static kigali.clinic.clinicmanagement.utils.Dates.endOfDay;
-import static kigali.clinic.clinicmanagement.utils.Validations.containsDigit;
-import static kigali.clinic.clinicmanagement.utils.Validations.isBlank;
+import static kigali.clinic.clinicmanagement.utils.Validations.ensure;
 import static kigali.clinic.clinicmanagement.utils.Validations.normalize;
 
 @Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class DoctorService {
 
     public static final String DOCTOR_NOT_FOUND = "The doctor with that id does not exist";
 
     private static final String SPECIALIZATION_NOT_FOUND = "That specialization does not exist";
 
-    @Autowired
-    private DoctorRepository doctorRepo;
-
-    @Autowired
-    private OfficeRepository officeRepo;
-
-    @Autowired
-    private SpecializationRepository specializationRepo;
-
-    @Autowired
-    private AppointmentRepository appointmentRepo;
+    private final DoctorRepository doctorRepository;
+    private final OfficeRepository officeRepository;
+    private final SpecializationRepository specializationRepository;
+    private final AppointmentRepository appointmentRepository;
 
     @Transactional
-    public String saveDoctor(Doctor doctor) {
-
-        String error = validateNames(doctor);
-
-        if (error != null) {
-            return error;
-        }
-
-        error = resolveOffice(doctor, null);
-
-        if (error != null) {
-            return error;
-        }
-
-        error = resolveSpecializations(doctor);
-
-        if (error != null) {
-            return error;
-        }
-
-        // doctors can share the same name, so only the office is kept unique
-        doctor.setId(null);
-        doctor.setFirstName(normalize(doctor.getFirstName()));
-        doctor.setLastName(normalize(doctor.getLastName()));
-        doctorRepo.save(doctor);
-
-        return "Doctor is saved Successfully";
+    public void register(Doctor.Details details) {
+        details.requireValidNames();
+        Office office = assignableOffice(details.office(), null);
+        doctorRepository.save(Doctor.register(details, office, specializationsFor(details.specializations())));
     }
 
     @Transactional
-    public String updateDoctor(UUID id, Doctor doctor) {
-
-        Doctor existing = doctorRepo.findById(id).orElse(null);
-
-        if (existing == null) {
-            return DOCTOR_NOT_FOUND;
-        }
-
-        String error = validateNames(doctor);
-
-        if (error != null) {
-            return error;
-        }
-
-        error = resolveOffice(doctor, id);
-
-        if (error != null) {
-            return error;
-        }
-
-        error = resolveSpecializations(doctor);
-
-        if (error != null) {
-            return error;
-        }
-
-        existing.setFirstName(normalize(doctor.getFirstName()));
-        existing.setLastName(normalize(doctor.getLastName()));
-        existing.setOffice(doctor.getOffice());
-        existing.setSpecializations(doctor.getSpecializations());
-        doctorRepo.save(existing);
-
-        return "Doctor is updated Successfully";
+    public void revise(UUID doctorId, Doctor.Details details) {
+        Doctor doctor = doctorById(doctorId);
+        details.requireValidNames();
+        Office office = assignableOffice(details.office(), doctorId);
+        doctor.revise(details, office, specializationsFor(details.specializations()));
     }
 
-    public List<Doctor> getAllDoctors() {
-        return doctorRepo.findAll();
+    public List<Doctor> allDoctors() {
+        return doctorRepository.findAll();
     }
 
-    public List<Doctor> getDoctorsBySpecialization(String name) {
-        return doctorRepo.findDoctorsBySpecialization(name.trim());
+    public List<Doctor> withSpecialization(String specializationName) {
+        return doctorRepository.findAllBySpecializationName(specializationName.trim());
     }
 
-    public List<Doctor> getDoctorsWithoutOffice() {
-        return doctorRepo.findDoctorsWithoutOffice();
+    public List<Doctor> withoutOffice() {
+        return doctorRepository.findAllWithoutOffice();
     }
 
-    public List<Doctor> searchDoctors(String name) {
-        return doctorRepo.searchByName(name.trim());
+    public List<Doctor> searchByName(String nameFragment) {
+        return doctorRepository.searchByNameFragment(nameFragment.trim());
     }
 
-    // bonus: both dates are inclusive, so the range runs to the very end of the last day
-    public List<Object[]> getWorkload(LocalDate start, LocalDate end) {
-        return doctorRepo.findDoctorWorkload(start.atStartOfDay(), endOfDay(end));
+    public List<Workload> completedWorkload(LocalDate firstDay, LocalDate lastDay) {
+        return doctorRepository.summarizeCompletedWorkload(firstDay.atStartOfDay(), endOfDay(lastDay));
     }
 
-    public Optional<Doctor> getDoctorById(UUID id) {
-        return doctorRepo.findById(id);
-    }
-
-    // A1 + A2: Doctor owns the join table, so editing its list and saving the doctor writes the link
-    @Transactional
-    public String addSpecialization(UUID doctorId, UUID specializationId) {
-
-        Doctor doctor = doctorRepo.findById(doctorId).orElse(null);
-
-        if (doctor == null) {
-            return DOCTOR_NOT_FOUND;
-        }
-
-        Specialization specialization = specializationRepo.findById(specializationId).orElse(null);
-
-        if (specialization == null) {
-            return SPECIALIZATION_NOT_FOUND;
-        }
-
-        if (doctor.getSpecializations().contains(specialization)) {
-            return "The doctor already has that specialization";
-        }
-
-        doctor.getSpecializations().add(specialization);
-        doctorRepo.save(doctor);
-
-        return "Specialization added to the doctor";
-    }
-
-    // only the row in doctor_specializations goes; the specialization itself stays
-    @Transactional
-    public String removeSpecialization(UUID doctorId, UUID specializationId) {
-
-        Doctor doctor = doctorRepo.findById(doctorId).orElse(null);
-
-        if (doctor == null) {
-            return DOCTOR_NOT_FOUND;
-        }
-
-        Specialization specialization = specializationRepo.findById(specializationId).orElse(null);
-
-        if (specialization == null) {
-            return SPECIALIZATION_NOT_FOUND;
-        }
-
-        if (!doctor.getSpecializations().remove(specialization)) {
-            return "The doctor does not have that specialization";
-        }
-
-        doctorRepo.save(doctor);
-
-        return "Specialization removed from the doctor";
-    }
-
-    // A4: Doctor holds office_id, so the move is saved on the doctor and the old office is free again
-    @Transactional
-    public String changeOffice(UUID doctorId, String officeNumber) {
-
-        Doctor doctor = doctorRepo.findById(doctorId).orElse(null);
-
-        if (doctor == null) {
-            return DOCTOR_NOT_FOUND;
-        }
-
-        Office office = officeRepo.findByOfficeNumber(normalize(officeNumber)).orElse(null);
-
-        if (office == null) {
-            return "The office with that office number does not exist";
-        }
-
-        if (doctorRepo.existsByOfficeIdAndIdNot(office.getId(), doctorId)) {
-            return "That office is taken by other doctor";
-        }
-
-        doctor.setOffice(office);
-        doctorRepo.save(doctor);
-
-        return "Office changed successfully";
+    public Doctor doctorById(UUID doctorId) {
+        return doctorRepository.findById(doctorId).orElseThrow(() -> notFound(DOCTOR_NOT_FOUND));
     }
 
     @Transactional
-    public String deleteDoctor(UUID id) {
+    public void addSpecialization(UUID doctorId, UUID specializationId) {
+        Doctor doctor = doctorById(doctorId);
 
-        Doctor existing = doctorRepo.findById(id).orElse(null);
-
-        if (existing == null) {
-            return DOCTOR_NOT_FOUND;
+        if (!doctor.addSpecialization(existingSpecialization(specializationId))) {
+            throw conflict("The doctor already has that specialization");
         }
-
-        if (appointmentRepo.existsByDoctorId(id)) {
-            return "Doctor already has appointments and can not be deleted";
-        }
-
-        // the office holds a back reference, so it has to let go before the row disappears
-        if (existing.getOffice() != null) {
-            existing.getOffice().setDoctor(null);
-            existing.setOffice(null);
-        }
-
-        doctorRepo.delete(existing);
-
-        return "Doctor is deleted Successfully";
     }
 
-    private String validateNames(Doctor doctor) {
+    @Transactional
+    public void removeSpecialization(UUID doctorId, UUID specializationId) {
+        Doctor doctor = doctorById(doctorId);
 
-        if (isBlank(doctor.getFirstName())) {
-            return "Doctor first name is required";
+        if (!doctor.removeSpecialization(existingSpecialization(specializationId))) {
+            throw conflict("The doctor does not have that specialization");
         }
-
-        if (isBlank(doctor.getLastName())) {
-            return "Doctor last name is required";
-        }
-
-        if (containsDigit(doctor.getFirstName()) || containsDigit(doctor.getLastName())) {
-            return "Doctor names must not contain numbers";
-        }
-
-        return null;
     }
 
-    private String resolveOffice(Doctor doctor, UUID currentDoctorId) {
+    @Transactional
+    public void moveToOffice(UUID doctorId, String officeNumber) {
+        Doctor doctor = doctorById(doctorId);
+        Office office = officeRepository.findByOfficeNumber(normalize(officeNumber))
+                .orElseThrow(() -> notFound("The office with that office number does not exist"));
 
-        if (doctor.getOffice() == null || doctor.getOffice().getId() == null) {
-            doctor.setOffice(null);
+        if (officeHeldByAnotherDoctor(office.getId(), doctorId)) {
+            throw conflict("That office is taken by other doctor");
+        }
+
+        doctor.moveTo(office);
+    }
+
+    @Transactional
+    public void delete(UUID doctorId) {
+        Doctor doctor = doctorById(doctorId);
+
+        if (appointmentRepository.existsByDoctorId(doctorId)) {
+            throw conflict("Doctor already has appointments and can not be deleted");
+        }
+
+        doctor.vacateOffice();
+        doctorRepository.delete(doctor);
+    }
+
+    private Office assignableOffice(Reference officeReference, UUID doctorId) {
+        if (officeReference == null || officeReference.id() == null) {
             return null;
         }
 
-        UUID officeId = doctor.getOffice().getId();
-        Office office = officeRepo.findById(officeId).orElse(null);
+        Office office = officeRepository.findById(officeReference.id())
+                .orElseThrow(() -> notFound("Office not found"));
 
-        if (office == null) {
-            return "Office not found";
+        if (officeHeldByAnotherDoctor(office.getId(), doctorId)) {
+            throw conflict("Office is already assigned to another doctor");
         }
 
-        boolean taken = currentDoctorId == null
-                ? doctorRepo.existsByOfficeId(officeId)
-                : doctorRepo.existsByOfficeIdAndIdNot(officeId, currentDoctorId);
-
-        if (taken) {
-            return "Office is already assigned to another doctor";
-        }
-
-        doctor.setOffice(office);
-
-        return null;
+        return office;
     }
 
-    private String resolveSpecializations(Doctor doctor) {
+    private boolean officeHeldByAnotherDoctor(UUID officeId, UUID doctorId) {
+        return doctorId == null
+                ? doctorRepository.existsByOfficeId(officeId)
+                : doctorRepository.existsByOfficeIdAndIdNot(officeId, doctorId);
+    }
 
-        List<Specialization> found = new ArrayList<>();
+    private List<Specialization> specializationsFor(List<Reference> specializationReferences) {
+        return Optional.ofNullable(specializationReferences).orElseGet(List::of).stream()
+                .map(this::specializationFor)
+                .toList();
+    }
 
-        if (doctor.getSpecializations() != null) {
+    private Specialization specializationFor(Reference specializationReference) {
+        ensure(specializationReference != null && specializationReference.id() != null,
+                "Specialization id is required");
 
-            for (Specialization item : doctor.getSpecializations()) {
+        return specializationRepository.findById(specializationReference.id())
+                .orElseThrow(() -> notFound("Specialization not found"));
+    }
 
-                if (item.getId() == null) {
-                    return "Specialization id is required";
-                }
-
-                Specialization specialization = specializationRepo.findById(item.getId()).orElse(null);
-
-                if (specialization == null) {
-                    return "Specialization not found";
-                }
-
-                found.add(specialization);
-            }
-        }
-
-        doctor.setSpecializations(found);
-
-        return null;
+    private Specialization existingSpecialization(UUID specializationId) {
+        return specializationRepository.findById(specializationId)
+                .orElseThrow(() -> notFound(SPECIALIZATION_NOT_FOUND));
     }
 }

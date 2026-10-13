@@ -1,93 +1,106 @@
 package kigali.clinic.clinicmanagement.controllers;
 
+import kigali.clinic.clinicmanagement.models.Appointment;
 import kigali.clinic.clinicmanagement.models.Doctor;
+import kigali.clinic.clinicmanagement.repositories.DoctorRepository.Workload;
 import kigali.clinic.clinicmanagement.services.AppointmentService;
 import kigali.clinic.clinicmanagement.services.DoctorService;
-import kigali.clinic.clinicmanagement.utils.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
+import kigali.clinic.clinicmanagement.utils.ApiResponses.Message;
+import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
+
+import static kigali.clinic.clinicmanagement.utils.ApiResponses.notFound;
 
 @RestController
 @RequestMapping({"/api/doctor", "/api/doctors"})
+@RequiredArgsConstructor
 public class DoctorController {
 
-    @Autowired
-    private DoctorService doctorService;
-
-    @Autowired
-    private AppointmentService appointmentService;
+    private final DoctorService doctorService;
+    private final AppointmentService appointmentService;
 
     @PostMapping("/save")
-    public ResponseEntity<?> saveDoctor(@RequestBody Doctor doctor) {
-        return ApiResponses.fromMessage(doctorService.saveDoctor(doctor), HttpStatus.CREATED);
+    @ResponseStatus(HttpStatus.CREATED)
+    public Message register(@RequestBody Doctor.Details details) {
+        doctorService.register(details);
+        return new Message("Doctor is saved Successfully");
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateDoctor(@PathVariable UUID id, @RequestBody Doctor doctor) {
-        return ApiResponses.fromMessage(doctorService.updateDoctor(id, doctor), HttpStatus.OK);
+    public Message revise(@PathVariable("id") UUID doctorId, @RequestBody Doctor.Details details) {
+        doctorService.revise(doctorId, details);
+        return new Message("Doctor is updated Successfully");
     }
 
     @GetMapping("/all")
-    public ResponseEntity<?> getAllDoctors() {
-        return ResponseEntity.ok(doctorService.getAllDoctors());
+    public List<Doctor> allDoctors() {
+        return doctorService.allDoctors();
     }
 
     @GetMapping("/by-specialization")
-    public ResponseEntity<?> getDoctorsBySpecialization(@RequestParam String name) {
-        return ResponseEntity.ok(doctorService.getDoctorsBySpecialization(name));
+    public List<Doctor> withSpecialization(@RequestParam("name") String specializationName) {
+        return doctorService.withSpecialization(specializationName);
     }
 
     @GetMapping("/without-office")
-    public ResponseEntity<?> getDoctorsWithoutOffice() {
-        return ResponseEntity.ok(doctorService.getDoctorsWithoutOffice());
+    public List<Doctor> withoutOffice() {
+        return doctorService.withoutOffice();
     }
 
     @GetMapping("/search")
-    public ResponseEntity<?> searchDoctors(@RequestParam String name) {
-        return ResponseEntity.ok(doctorService.searchDoctors(name));
+    public List<Doctor> searchByName(@RequestParam("name") String nameFragment) {
+        return doctorService.searchByName(nameFragment);
     }
 
     @GetMapping("/workload")
-    public ResponseEntity<?> getWorkload(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-                                         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
-        return ResponseEntity.ok(doctorService.getWorkload(start, end));
+    public List<Workload> completedWorkload(
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate firstDay,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate lastDay) {
+        return doctorService.completedWorkload(firstDay, lastDay);
     }
 
     @GetMapping("/{doctorId}/agenda")
-    public ResponseEntity<?> getAgenda(@PathVariable UUID doctorId,
-                                       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ApiResponses.fromData(appointmentService.getDoctorAgenda(doctorId, date).orElse(null),
-                DoctorService.DOCTOR_NOT_FOUND);
+    public List<Appointment> agenda(@PathVariable("doctorId") UUID doctorId,
+                                    @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate day) {
+        return appointmentService.getDoctorAgenda(doctorId, day)
+                .orElseThrow(() -> notFound(DoctorService.DOCTOR_NOT_FOUND));
     }
 
     @PutMapping("/{doctorId}/specializations/{specializationId}")
-    public ResponseEntity<?> addSpecialization(@PathVariable UUID doctorId, @PathVariable UUID specializationId) {
-        return ApiResponses.fromMessage(doctorService.addSpecialization(doctorId, specializationId), HttpStatus.OK);
+    public Message addSpecialization(@PathVariable("doctorId") UUID doctorId,
+                                     @PathVariable("specializationId") UUID specializationId) {
+        doctorService.addSpecialization(doctorId, specializationId);
+        return new Message("Specialization added to the doctor");
     }
 
     @DeleteMapping("/{doctorId}/specializations/{specializationId}")
-    public ResponseEntity<?> removeSpecialization(@PathVariable UUID doctorId, @PathVariable UUID specializationId) {
-        return ApiResponses.fromMessage(doctorService.removeSpecialization(doctorId, specializationId), HttpStatus.OK);
+    public Message removeSpecialization(@PathVariable("doctorId") UUID doctorId,
+                                        @PathVariable("specializationId") UUID specializationId) {
+        doctorService.removeSpecialization(doctorId, specializationId);
+        return new Message("Specialization removed from the doctor");
     }
 
     @PatchMapping("/{doctorId}/office")
-    public ResponseEntity<?> changeOffice(@PathVariable UUID doctorId, @RequestParam String officeNumber) {
-        return ApiResponses.fromMessage(doctorService.changeOffice(doctorId, officeNumber), HttpStatus.OK);
+    public Message moveToOffice(@PathVariable("doctorId") UUID doctorId,
+                                @RequestParam("officeNumber") String officeNumber) {
+        doctorService.moveToOffice(doctorId, officeNumber);
+        return new Message("Office changed successfully");
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getDoctorById(@PathVariable UUID id) {
-        return ApiResponses.fromData(doctorService.getDoctorById(id).orElse(null), DoctorService.DOCTOR_NOT_FOUND);
+    public Doctor doctorById(@PathVariable("id") UUID doctorId) {
+        return doctorService.doctorById(doctorId);
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteDoctor(@PathVariable UUID id) {
-        return ApiResponses.fromMessage(doctorService.deleteDoctor(id), HttpStatus.OK);
+    public Message delete(@PathVariable("id") UUID doctorId) {
+        doctorService.delete(doctorId);
+        return new Message("Doctor is deleted Successfully");
     }
 }

@@ -1,22 +1,25 @@
 package kigali.clinic.clinicmanagement.models;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
+
+import static kigali.clinic.clinicmanagement.utils.Validations.ensure;
+import static kigali.clinic.clinicmanagement.utils.Validations.isBlank;
+import static kigali.clinic.clinicmanagement.utils.Validations.isNotPositiveNumber;
+import static kigali.clinic.clinicmanagement.utils.Validations.normalize;
 
 @Entity
 @Getter
-@Setter
-@Table(name ="offices")
-public class Office extends BaseEntity  {
+@Table(name = "offices")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Office extends BaseEntity {
 
-
-    // nullable so the column can be added to tables that already hold offices
     @Column(name = "name", length = 100)
     private String name;
 
@@ -26,4 +29,36 @@ public class Office extends BaseEntity  {
     @JsonIgnore
     @OneToOne(mappedBy = "office")
     private Doctor doctor;
+
+    public static Office open(Details details) {
+        Office office = new Office();
+        office.revise(details);
+        return office;
+    }
+
+    public void revise(Details details) {
+        this.name = details.name();
+        this.officeNumber = details.officeNumber();
+    }
+
+    public boolean hasDoctor() {
+        return doctor != null;
+    }
+
+    void releaseDoctor() {
+        doctor = null;
+    }
+
+    public record Details(String name, String officeNumber) {
+
+        public Details {
+            name = normalize(name);
+            officeNumber = normalize(officeNumber);
+        }
+
+        public void requireValid() {
+            ensure(!isBlank(officeNumber), "Office number is required");
+            ensure(!isNotPositiveNumber(officeNumber), "Office number must be a positive number");
+        }
+    }
 }

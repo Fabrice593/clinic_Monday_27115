@@ -39,4 +39,7 @@ public abstract class BaseEntity {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public record Reference(UUID id) {
+    }
 }
