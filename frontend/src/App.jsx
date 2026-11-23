@@ -1,122 +1,84 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { useEffect, useState } from 'react'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+async function readResponse(response) {
+  const data = await response.json().catch(() => null)
+  if (!response.ok) throw new Error(data?.message || `Request failed (${response.status})`)
+  return data
+}
+
+export default function App() {
+  const [offices, setOffices] = useState([])
+  const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
+  const [deletingId, setDeletingId] = useState(null)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch('/api/offices/all', { signal: controller.signal })
+      .then(readResponse)
+      .then(data => {
+        if (!Array.isArray(data)) throw new Error('Invalid office list from server')
+        setOffices(data)
+      })
+      .catch(err => { if (!controller.signal.aborted) setError(err.message) })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false) })
+    return () => controller.abort()
+  }, [])
+
+  async function deleteOffice(office) {
+    if (deletingId !== null || !window.confirm(`Delete office ${office.officeNumber}?`)) return
+    setDeletingId(office.id)
+    setError('')
+    setMessage('')
+    try {
+      const response = await fetch(`/api/offices/delete/${encodeURIComponent(office.id)}`, { method: 'DELETE' })
+      const data = await readResponse(response)
+      setOffices(current => current.filter(item => item.id !== office.id))
+      setMessage(data?.message || 'Office deleted successfully')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  const query = search.trim().toLowerCase()
+  const filtered = offices.filter(office =>
+    [office.name, office.officeNumber].some(value => String(value ?? '').toLowerCase().includes(query)))
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+      <header><span className="brand-icon" aria-hidden="true">+</span> Clinic Management</header>
+      <main>
+        <p className="eyebrow">CLINIC ADMINISTRATION</p>
+        <h1>Offices</h1>
+        <p className="subtitle">Find and manage your clinic's offices.</p>
+        {error && <div className="notice error" role="alert">{error}</div>}
+        {message && <div className="notice success" role="status">{message}</div>}
+        <section aria-label="Office directory">
+          <div className="toolbar">
+            <div><h2>All offices</h2><p>{loading ? 'Loading...' : `${filtered.length} of ${offices.length} offices`}</p></div>
+            <div className="search"><label htmlFor="search">Search offices</label><input id="search" type="search" placeholder="Search by name or office number" value={search} onChange={event => setSearch(event.target.value)} /></div>
+          </div>
+          <div className="table-scroll">
+            <table aria-busy={loading}>
+              <thead><tr><th scope="col">Office number</th><th scope="col">Office name</th><th scope="col">Action</th></tr></thead>
+              <tbody>
+                {loading ? <tr><td colSpan="3" className="empty">Loading offices...</td></tr> : filtered.map(office => (
+                  <tr key={office.id}>
+                    <td className="number">{office.officeNumber}</td><td>{office.name || 'Unnamed office'}</td>
+                    <td><div className="actions"><button type="button" className="update" title="Update is not available yet">Update</button><button type="button" className="delete" disabled={deletingId !== null} onClick={() => deleteOffice(office)} aria-label={`Delete office ${office.officeNumber}`}>{deletingId === office.id ? 'Deleting...' : 'Delete'}</button></div></td>
+                  </tr>
+                ))}
+                {!loading && filtered.length === 0 && <tr><td colSpan="3" className="empty">{error ? 'Unable to load offices. Please refresh to try again.' : query ? 'No offices match your search.' : 'No offices yet.'}</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
     </>
   )
 }
-
-export default App
